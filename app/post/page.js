@@ -1,0 +1,288 @@
+'use client'
+
+import { useState } from 'react'
+import { supabase } from '../../lib/supabase'
+import { useRouter } from 'next/navigation'
+
+export default function PostPage() {
+  const router = useRouter()
+  const [formData, setFormData] = useState({
+    disease_name: '',
+    content: '',
+    nickname: '',
+    age_range: '',
+    gender: '',
+    email: ''
+  })
+  const [submitting, setSubmitting] = useState(false)
+  const [message, setMessage] = useState('')
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    
+    if (!formData.disease_name || !formData.content) {
+      setMessage('病名と投稿内容は必須です')
+      return
+    }
+
+    setSubmitting(true)
+    setMessage('')
+
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .insert([{
+          disease_name: formData.disease_name,
+          content: formData.content,
+          nickname: formData.nickname || '匿名',
+          age_range: formData.age_range || null,
+          gender: formData.gender || null,
+          email: formData.email || null
+        }])
+
+      if (error) throw error
+
+      setMessage('投稿が完了しました！')
+      setTimeout(() => {
+        router.push('/')
+      }, 1500)
+    } catch (error) {
+      console.error('Error submitting post:', error)
+      setMessage('投稿に失敗しました。もう一度お試しください。')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  return (
+    <main style={{ maxWidth: '700px', margin: '0 auto', padding: '20px' }}>
+      <div style={{
+        backgroundColor: 'white',
+        padding: '30px',
+        borderRadius: '8px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      }}>
+        <h2 style={{ marginTop: 0 }}>新規投稿</h2>
+        
+        <div style={{
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffc107',
+          borderRadius: '4px',
+          padding: '15px',
+          marginBottom: '20px',
+          fontSize: '14px'
+        }}>
+          <strong>免責事項：</strong>
+          この掲示板は患者の体験談を共有する場です。医学的アドバイスではありません。
+          治療の判断は必ず医師と相談してください。
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              病名 <span style={{ color: 'red' }}>*必須</span>
+            </label>
+            <input
+              type="text"
+              name="disease_name"
+              value={formData.disease_name}
+              onChange={handleChange}
+              placeholder="例: 膵臓がん、自閉症スペクトラム障害"
+              required
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '16px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              投稿内容 <span style={{ color: 'red' }}>*必須</span>
+            </label>
+            <textarea
+              name="content"
+              value={formData.content}
+              onChange={handleChange}
+              placeholder="症状、治療内容、副作用、日常生活での工夫など、あなたの体験を自由に記載してください"
+              required
+              rows="10"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '16px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                boxSizing: 'border-box',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              ニックネーム（任意）
+            </label>
+            <input
+              type="text"
+              name="nickname"
+              value={formData.nickname}
+              onChange={handleChange}
+              placeholder="未入力の場合は「匿名」と表示されます"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '16px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr 1fr',
+            gap: '15px',
+            marginBottom: '20px'
+          }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                年齢層（任意）
+              </label>
+              <select
+                name="age_range"
+                value={formData.age_range}
+                onChange={handleChange}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  fontSize: '16px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <option value="">選択しない</option>
+                <option value="10代以下">10代以下</option>
+                <option value="20代">20代</option>
+                <option value="30代">30代</option>
+                <option value="40代">40代</option>
+                <option value="50代">50代</option>
+                <option value="60代">60代</option>
+                <option value="70代以上">70代以上</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                性別（任意）
+              </label>
+              <select
+                name="gender"
+                value={formData.gender}
+                onChange={handleChange}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  fontSize: '16px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <option value="">選択しない</option>
+                <option value="男性">男性</option>
+                <option value="女性">女性</option>
+                <option value="回答しない">回答しない</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              メールアドレス（任意・非公開）
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="投稿の削除リンク送信用（非公開）"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '16px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                boxSizing: 'border-box'
+              }}
+            />
+            <small style={{ color: '#666', fontSize: '12px' }}>
+              ※このメールアドレスは公開されません。投稿削除用のリンク送信にのみ使用します。
+            </small>
+          </div>
+
+          {message && (
+            <div style={{
+              padding: '10px',
+              marginBottom: '15px',
+              borderRadius: '4px',
+              backgroundColor: message.includes('失敗') ? '#f8d7da' : '#d4edda',
+              color: message.includes('失敗') ? '#721c24' : '#155724',
+              border: `1px solid ${message.includes('失敗') ? '#f5c6cb' : '#c3e6cb'}`
+            }}>
+              {message}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{
+                backgroundColor: submitting ? '#ccc' : '#2c5282',
+                color: 'white',
+                padding: '12px 30px',
+                fontSize: '16px',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              {submitting ? '投稿中...' : '投稿する'}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/')}
+              style={{
+                backgroundColor: 'white',
+                color: '#2c5282',
+                padding: '12px 30px',
+                fontSize: '16px',
+                border: '1px solid #2c5282',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              キャンセル
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  )
+}
