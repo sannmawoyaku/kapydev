@@ -1,13 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useRouter } from 'next/navigation'
 
 export default function PostPage() {
   const router = useRouter()
+  const [categories, setCategories] = useState([])
+  const [diseases, setDiseases] = useState([])
+  const [filteredDiseases, setFilteredDiseases] = useState([])
   const [formData, setFormData] = useState({
-    disease_name: '',
+    category_id: '',
+    disease_id: '',
     content: '',
     nickname: '',
     age_range: '',
@@ -17,10 +21,39 @@ export default function PostPage() {
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState('')
 
+  useEffect(() => {
+    fetchCategories()
+    fetchDiseases()
+  }, [])
+
+  useEffect(() => {
+    if (formData.category_id) {
+      const filtered = diseases.filter(d => d.category_id === formData.category_id)
+      setFilteredDiseases(filtered)
+    } else {
+      setFilteredDiseases([])
+    }
+  }, [formData.category_id, diseases])
+
+  async function fetchCategories() {
+    const { data } = await supabase
+      .from('categories')
+      .select('*')
+      .order('display_order')
+    setCategories(data || [])
+  }
+
+  async function fetchDiseases() {
+    const { data } = await supabase
+      .from('diseases')
+      .select('*')
+    setDiseases(data || [])
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    if (!formData.disease_name || !formData.content) {
+    if (!formData.disease_id || !formData.content) {
       setMessage('病名と投稿内容は必須です')
       return
     }
@@ -32,7 +65,7 @@ export default function PostPage() {
       const { error } = await supabase
         .from('posts')
         .insert([{
-          disease_name: formData.disease_name,
+          disease_id: formData.disease_id,
           content: formData.content,
           nickname: formData.nickname || '匿名',
           age_range: formData.age_range || null,
@@ -55,10 +88,16 @@ export default function PostPage() {
   }
 
   const handleChange = (e) => {
+    const { name, value } = e.target
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     })
+    
+    // カテゴリが変更されたら病名選択をリセット
+    if (name === 'category_id') {
+      setFormData(prev => ({ ...prev, disease_id: '' }))
+    }
   }
 
   return (
@@ -87,14 +126,12 @@ export default function PostPage() {
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              病名 <span style={{ color: 'red' }}>*必須</span>
+              病気のカテゴリ <span style={{ color: 'red' }}>*必須</span>
             </label>
-            <input
-              type="text"
-              name="disease_name"
-              value={formData.disease_name}
+            <select
+              name="category_id"
+              value={formData.category_id}
               onChange={handleChange}
-              placeholder="例: 膵臓がん、自閉症スペクトラム障害"
               required
               style={{
                 width: '100%',
@@ -104,7 +141,49 @@ export default function PostPage() {
                 borderRadius: '4px',
                 boxSizing: 'border-box'
               }}
-            />
+            >
+              <option value="">カテゴリを選択してください</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              病名 <span style={{ color: 'red' }}>*必須</span>
+            </label>
+            <select
+              name="disease_id"
+              value={formData.disease_id}
+              onChange={handleChange}
+              required
+              disabled={!formData.category_id}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '16px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                boxSizing: 'border-box',
+                backgroundColor: !formData.category_id ? '#f5f5f5' : 'white'
+              }}
+            >
+              <option value="">
+                {formData.category_id ? '病名を選択してください' : 'まずカテゴリを選択してください'}
+              </option>
+              {filteredDiseases.map(disease => (
+                <option key={disease.id} value={disease.id}>
+                  {disease.primary_name}
+                  {disease.synonyms && disease.synonyms.length > 0 && 
+                    ` (${disease.synonyms.slice(0, 2).join(', ')})`
+                  }
+                </option>
+              ))}
+            </select>
+            <small style={{ color: '#666', fontSize: '12px' }}>
+              ※同義語も検索で自動的にヒットします（例：「膵臓がん」で検索すると「膵臓癌」「すい臓がん」も表示）
+            </small>
           </div>
 
           <div style={{ marginBottom: '20px' }}>
