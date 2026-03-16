@@ -161,7 +161,7 @@ export default function AdminPage() {
             fontSize: '14px'
           }}
         >
-          ← サイトに戻る
+          サイトに戻る
         </a>
       </div>
 
