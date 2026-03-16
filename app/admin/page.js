@@ -151,8 +151,7 @@ export default function AdminPage() {
         marginBottom: '20px'
       }}>
         <h1 style={{ margin: 0 }}>管理画面</h1>
-        
-          href="/"
+        <a href="/"
           style={{
             color: '#2c5282',
             textDecoration: 'none',
