@@ -10,8 +10,7 @@ export default function AdminPage() {
   const [password, setPassword] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
 
-  // 簡易パスワード認証（後でより安全な方法に変更可能）
-  const ADMIN_PASSWORD = 'admin2026' // 後で変更してください
+  const ADMIN_PASSWORD = 'admin2026'
 
   useEffect(() => {
     if (authenticated) {
@@ -29,8 +28,7 @@ export default function AdminPage() {
           diseases (
             primary_name,
             categories (name)
-          ),
-          reports (count)
+          )
         `)
         .order('created_at', { ascending: false })
 
