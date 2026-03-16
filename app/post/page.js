@@ -53,8 +53,13 @@ export default function PostPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    if (!formData.disease_id || !formData.content) {
+   if (!formData.disease_id || !formData.content) {
       setMessage('病名と投稿内容は必須です')
+      return
+    }
+
+    if (!agreedToTerms) {
+      setMessage('免責事項に同意してください')
       return
     }
 
