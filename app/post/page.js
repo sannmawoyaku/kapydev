@@ -295,28 +295,38 @@ export default function PostPage() {
             </div>
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              メールアドレス（任意・非公開）
+          <div style={{
+            backgroundColor: '#fff3cd',
+            border: '2px solid #ffc107',
+            borderRadius: '8px',
+            padding: '20px',
+            marginBottom: '20px'
+          }}>
+            <label style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              cursor: 'pointer',
+              fontSize: '14px',
+              lineHeight: '1.6'
+            }}>
+              <input
+                type="checkbox"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                style={{
+                  marginRight: '10px',
+                  marginTop: '3px',
+                  width: '18px',
+                  height: '18px',
+                  cursor: 'pointer',
+                  flexShrink: 0
+                }}
+              />
+              <span>
+                <strong style={{ color: '#d63031' }}>【必読・同意必須】</strong><br/>
+                本サイトの情報は個人の体験であり、医学的なアドバイスではありません。治療に関する決定は必ず主治医に相談してください。また、特定の治療法やサプリメント等の推奨・販売誘導、個人や医療機関を特定できる情報の投稿を行わないことに同意します。
+              </span>
             </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="投稿の削除リンク送信用（非公開）"
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '16px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                boxSizing: 'border-box'
-              }}
-            />
-            <small style={{ color: '#666', fontSize: '12px' }}>
-              ※このメールアドレスは公開されません。投稿削除用のリンク送信にのみ使用します。
-            </small>
           </div>
 
           {message && (
