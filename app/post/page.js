@@ -20,6 +20,7 @@ export default function PostPage() {
   })
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState('')
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
 
   useEffect(() => {
     fetchCategories()
