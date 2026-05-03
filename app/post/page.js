@@ -208,7 +208,126 @@ export default function PostPage() {
 
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-              投稿内容 <span style={{ color: 'red' }}>*必須</span>
+              あなたの立場 <span style={{ color: 'red' }}>*必須</span>
+            </label>
+            <select
+              name="standpoint"
+              value={formData.standpoint}
+              onChange={handleChange}
+              required
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '16px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                boxSizing: 'border-box'
+              }}
+            >
+              <option value="">選択してください</option>
+              <option value="患者本人">患者本人</option>
+              <option value="家族">家族</option>
+              <option value="友人・知人">友人・知人</option>
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              時期（任意）
+            </label>
+            <select
+              name="stage"
+              value={formData.stage}
+              onChange={handleChange}
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '16px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                boxSizing: 'border-box'
+              }}
+            >
+              <option value="">選択しない</option>
+              <option value="診断直後">診断直後</option>
+              <option value="治療中">治療中</option>
+              <option value="寛解・経過観察">寛解・経過観察</option>
+              <option value="終末期">終末期</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              直面した困りごと・辛かったこと
+            </label>
+            <textarea
+              name="difficulties"
+              value={formData.difficulties}
+              onChange={handleChange}
+              placeholder="例：抗がん剤のあと、水すら苦く感じた"
+              rows="4"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '16px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                boxSizing: 'border-box',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              やってみて良かった工夫・準備
+            </label>
+            <textarea
+              name="tips"
+              value={formData.tips}
+              onChange={handleChange}
+              placeholder="例：レモン水や氷を舐めるとマシになった"
+              rows="4"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '16px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                boxSizing: 'border-box',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+              同じ境遇の人へ一言
+            </label>
+            <textarea
+              name="message_to_others"
+              value={formData.message_to_others}
+              onChange={handleChange}
+              placeholder="例：一人じゃないです。工夫次第で少し楽になることもあります"
+              rows="3"
+              style={{
+                width: '100%',
+                padding: '10px',
+                fontSize: '16px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                boxSizing: 'border-box',
+                fontFamily: 'inherit',
+                resize: 'vertical'
+              }}
+            />
+            <small style={{ color: '#666', fontSize: '12px', marginTop: '5px', display: 'block' }}>
+              ※困りごと、工夫、メッセージのいずれか1つは入力してください
+            </small>
+          </div>
             </label>
             <textarea
               name="content"
