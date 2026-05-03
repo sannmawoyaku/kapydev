@@ -12,7 +12,11 @@ export default function PostPage() {
   const [formData, setFormData] = useState({
     category_id: '',
     disease_id: '',
-    content: '',
+    standpoint: '',
+    stage: '',
+    difficulties: '',
+    tips: '',
+    message_to_others: '',
     nickname: '',
     age_range: '',
     gender: '',
