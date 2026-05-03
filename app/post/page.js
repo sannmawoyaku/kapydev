@@ -58,8 +58,14 @@ export default function PostPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-   if (!formData.disease_id || !formData.content) {
-      setMessage('病名と投稿内容は必須です')
+ if (!formData.disease_id || !formData.standpoint) {
+      setMessage('病名と立場は必須です')
+      return
+    }
+
+    // 少なくとも1つの記述項目が入力されているか確認
+    if (!formData.difficulties && !formData.tips && !formData.message_to_others) {
+      setMessage('困りごと、工夫、メッセージのいずれか1つは入力してください')
       return
     }
 
