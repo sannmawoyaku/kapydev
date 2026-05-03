@@ -78,11 +78,15 @@ export default function PostPage() {
     setMessage('')
 
     try {
-      const { error } = await supabase
+     const { error } = await supabase
         .from('posts')
         .insert([{
           disease_id: formData.disease_id,
-          content: formData.content,
+          standpoint: formData.standpoint,
+          stage: formData.stage || null,
+          difficulties: formData.difficulties || null,
+          tips: formData.tips || null,
+          message_to_others: formData.message_to_others || null,
           nickname: formData.nickname || '匿名',
           age_range: formData.age_range || null,
           gender: formData.gender || null,
