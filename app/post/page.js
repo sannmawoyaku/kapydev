@@ -328,26 +328,6 @@ export default function PostPage() {
               ※困りごと、工夫、メッセージのいずれか1つは入力してください
             </small>
           </div>
-            </label>
-            <textarea
-              name="content"
-              value={formData.content}
-              onChange={handleChange}
-              placeholder="症状、治療内容、副作用、日常生活での工夫など、あなたの体験を自由に記載してください"
-              required
-              rows="10"
-              style={{
-                width: '100%',
-                padding: '10px',
-                fontSize: '16px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                boxSizing: 'border-box',
-                fontFamily: 'inherit',
-                resize: 'vertical'
-              }}
-            />
-          </div>
 
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
