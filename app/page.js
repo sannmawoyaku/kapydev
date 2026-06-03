@@ -186,6 +186,10 @@ export default function Home() {
         `Error ${isBookmarked ? 'removing' : 'adding'} bookmark:`,
         error
       )
+      if (!isBookmarked && error?.code === '23505') {
+        setAuthMessage('この投稿はすでにお気に入りに保存されています。')
+        return
+      }
       setAuthMessage(
         isBookmarked
           ? 'お気に入りの削除に失敗しました。'
@@ -224,6 +228,13 @@ export default function Home() {
     return bookmarkPostIds.has(postId)
       ? '★ お気に入り済み'
       : '☆ お気に入りに保存'
+  }
+
+  function getBookmarkAriaLabel(postId) {
+    if (bookmarkLoadingId === postId) return 'お気に入りを保存中'
+    return bookmarkPostIds.has(postId)
+      ? 'お気に入りから削除'
+      : 'お気に入りに追加'
   }
 
   return (
@@ -489,7 +500,7 @@ export default function Home() {
                   onClick={() => toggleBookmark(post.id)}
                   disabled={bookmarkLoadingId === post.id}
                   aria-pressed={bookmarkPostIds.has(post.id) ? 'true' : 'false'}
-                  aria-label={getBookmarkButtonText(post.id)}
+                  aria-label={getBookmarkAriaLabel(post.id)}
                   style={{
                     backgroundColor: bookmarkPostIds.has(post.id) ? '#ffe9a8' : 'white',
                     color: '#8a6d1d',
