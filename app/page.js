@@ -173,7 +173,7 @@ export default function Home() {
       } else {
         const { error } = await supabase
           .from('bookmarks')
-          .insert([{ user_id: user.id, post_id: postId }])
+          .insert({ user_id: user.id, post_id: postId })
         if (error) throw error
         setBookmarkPostIds((prev) => {
           const next = new Set(prev)
@@ -488,7 +488,8 @@ export default function Home() {
                 <button
                   onClick={() => toggleBookmark(post.id)}
                   disabled={bookmarkLoadingId === post.id}
-                  aria-pressed={bookmarkPostIds.has(post.id)}
+                  aria-pressed={bookmarkPostIds.has(post.id) ? 'true' : 'false'}
+                  aria-label={getBookmarkButtonText(post.id)}
                   style={{
                     backgroundColor: bookmarkPostIds.has(post.id) ? '#ffe9a8' : 'white',
                     color: '#8a6d1d',
