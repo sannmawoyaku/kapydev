@@ -10,11 +10,49 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
+  const [user, setUser] = useState(null)
+  const [bookmarkPostIds, setBookmarkPostIds] = useState(new Set())
+  const [authEmail, setAuthEmail] = useState('')
+  const [authMessage, setAuthMessage] = useState('')
+  const [bookmarkLoadingId, setBookmarkLoadingId] = useState(null)
 
   useEffect(() => {
+    fetchSession()
     fetchCategories()
     fetchPosts()
   }, [])
+
+  useEffect(() => {
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const currentUser = session?.user || null
+      setUser(currentUser)
+
+      if (currentUser) {
+        fetchBookmarks(currentUser.id)
+      } else {
+        setBookmarkPostIds(new Set())
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  async function fetchSession() {
+    const {
+      data: { session }
+    } = await supabase.auth.getSession()
+
+    const currentUser = session?.user || null
+    setUser(currentUser)
+
+    if (currentUser) {
+      fetchBookmarks(currentUser.id)
+    }
+  }
 
   async function fetchCategories() {
     const { data } = await supabase
@@ -49,6 +87,108 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
+
+    async function fetchBookmarks(userId) {
+      const { data, error } = await supabase
+        .from('bookmarks')
+        .select('post_id')
+        .eq('user_id', userId)
+
+      if (error) {
+        console.error('Error fetching bookmarks:', error)
+        return
+      }
+
+      setBookmarkPostIds(new Set((data || []).map((item) => item.post_id)))
+    }
+
+    async function handleEmailSignIn() {
+      if (!authEmail) {
+        setAuthMessage('メールアドレスを入力してください。')
+        return
+      }
+
+      setAuthMessage('')
+      const { error } = await supabase.auth.signInWithOtp({
+        email: authEmail,
+        options: {
+          emailRedirectTo: window.location.origin
+        }
+      })
+
+      if (error) {
+        setAuthMessage('ログインメールの送信に失敗しました。')
+        return
+      }
+
+      setAuthMessage('ログインメールを送信しました。メールをご確認ください。')
+    }
+
+    async function handleGoogleSignIn() {
+      setAuthMessage('')
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      })
+
+      if (error) {
+        setAuthMessage('Googleログインに失敗しました。')
+      }
+    }
+
+    async function handleSignOut() {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        setAuthMessage('ログアウトに失敗しました。')
+        return
+      }
+      setUser(null)
+      setBookmarkPostIds(new Set())
+      setAuthMessage('')
+    }
+
+    async function toggleBookmark(postId) {
+      if (!user) {
+        setAuthMessage('お気に入りを使うにはログインしてください。')
+        return
+      }
+
+      setBookmarkLoadingId(postId)
+      const isBookmarked = bookmarkPostIds.has(postId)
+
+      try {
+        if (isBookmarked) {
+          const { error } = await supabase
+            .from('bookmarks')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('post_id', postId)
+          if (error) throw error
+          setBookmarkPostIds((prev) => {
+            const next = new Set(prev)
+            next.delete(postId)
+            return next
+          })
+        } else {
+          const { error } = await supabase
+            .from('bookmarks')
+            .insert([{ user_id: user.id, post_id: postId }])
+          if (error) throw error
+          setBookmarkPostIds((prev) => {
+            const next = new Set(prev)
+            next.add(postId)
+            return next
+          })
+        }
+      } catch (error) {
+        console.error('Error toggling bookmark:', error)
+        setAuthMessage('お気に入りの保存に失敗しました。')
+      } finally {
+        setBookmarkLoadingId(null)
+      }
+    }
   }
 
   const filteredPosts = posts.filter(post => {
@@ -76,6 +216,88 @@ export default function Home() {
 
   return (
     <main style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
+      <div style={{
+        backgroundColor: 'white',
+        padding: '20px',
+        borderRadius: '8px',
+        marginBottom: '20px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      }}>
+        <h2 style={{ marginTop: 0 }}>お気に入り機能</h2>
+        {user ? (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <span style={{ color: '#444', fontSize: '14px' }}>ログイン中: {user.email}</span>
+            <button
+              onClick={handleSignOut}
+              style={{
+                backgroundColor: 'white',
+                color: '#2c5282',
+                padding: '8px 16px',
+                border: '1px solid #2c5282',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              ログアウト
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <input
+                type="email"
+                value={authEmail}
+                onChange={(e) => setAuthEmail(e.target.value)}
+                placeholder="メールアドレス"
+                style={{
+                  flex: 1,
+                  minWidth: '220px',
+                  padding: '10px',
+                  fontSize: '14px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box'
+                }}
+              />
+              <button
+                onClick={handleEmailSignIn}
+                style={{
+                  backgroundColor: '#2c5282',
+                  color: 'white',
+                  padding: '10px 16px',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                メールでログイン
+              </button>
+              <button
+                onClick={handleGoogleSignIn}
+                style={{
+                  backgroundColor: 'white',
+                  color: '#2c5282',
+                  padding: '10px 16px',
+                  border: '1px solid #2c5282',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                Googleログイン
+              </button>
+            </div>
+            <small style={{ color: '#666' }}>
+              ログインすると気になる投稿をお気に入り保存できます。
+            </small>
+          </div>
+        )}
+        {authMessage && (
+          <p style={{ marginBottom: 0, marginTop: '10px', fontSize: '14px', color: '#444' }}>
+            {authMessage}
+          </p>
+        )}
+      </div>
+
       <div style={{
         backgroundColor: 'white',
         padding: '20px',
@@ -239,13 +461,37 @@ export default function Home() {
                 {post.content}
               </p>
               
-              <div style={{ 
-                fontSize: '14px', 
+              <div style={{
+                fontSize: '14px',
                 color: '#666',
                 borderTop: '1px solid #eee',
-                paddingTop: '10px'
+                paddingTop: '10px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '10px',
+                flexWrap: 'wrap'
               }}>
-                投稿者: {post.nickname || '匿名'}
+                <span>投稿者: {post.nickname || '匿名'}</span>
+                <button
+                  onClick={() => toggleBookmark(post.id)}
+                  disabled={bookmarkLoadingId === post.id}
+                  style={{
+                    backgroundColor: bookmarkPostIds.has(post.id) ? '#ffe9a8' : 'white',
+                    color: '#8a6d1d',
+                    padding: '6px 12px',
+                    border: '1px solid #d7b65a',
+                    borderRadius: '4px',
+                    cursor: bookmarkLoadingId === post.id ? 'not-allowed' : 'pointer',
+                    fontSize: '13px'
+                  }}
+                >
+                  {bookmarkLoadingId === post.id
+                    ? '保存中...'
+                    : bookmarkPostIds.has(post.id)
+                      ? '★ お気に入り済み'
+                      : '☆ お気に入りに保存'}
+                </button>
               </div>
             </div>
           ))}

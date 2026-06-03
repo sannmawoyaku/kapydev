@@ -38,6 +38,7 @@ kapydev/
 | `categories` | Top-level disease groups (e.g. 癌, 神経系疾患) ordered by `display_order` |
 | `diseases` | Individual diseases with `primary_name`, `synonyms[]`, and a FK to `categories` |
 | `posts` | Patient submissions — linked to a disease, with optional `nickname`, `age_range`, `gender`, `email`, and a moderation `status` |
+| `bookmarks` | User favorites mapping (`user_id` from Supabase Auth ↔ `post_id`) |
 
 Post `status` lifecycle: `pending` → `approved` (visible on home page) or `rejected`. Posts that violate guidelines can be flagged as `reported`.
 
@@ -49,6 +50,7 @@ Post `status` lifecycle: `pending` → `approved` (visible on home page) or `rej
 - **Category filter** — dropdown populated from `categories`
 - **Keyword search** — searches disease name, synonyms, post content, and nickname simultaneously
 - **Post listing** — shows only `approved` posts ordered by newest first
+- **Bookmarking** — authenticated users can save/unsave posts from the list
 - Link to the submission form
 
 ### Submission form (`/post`)
@@ -78,6 +80,20 @@ Create a `.env.local` file at the project root:
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://<your-project>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
+```
+
+### Supabase Auth and bookmarks setup
+
+Enable at least one login provider in Supabase Auth (Email and/or Google), then create a bookmarks table:
+
+```sql
+create table if not exists bookmarks (
+  id bigint generated always as identity primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  post_id bigint not null references posts(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (user_id, post_id)
+);
 ```
 
 ### Run locally
