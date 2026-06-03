@@ -26,14 +26,7 @@ export default function Home() {
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      const currentUser = session?.user || null
-      setUser(currentUser)
-
-      if (currentUser) {
-        fetchBookmarks(currentUser.id)
-      } else {
-        setBookmarkPostIds(new Set())
-      }
+      applySession(session)
     })
 
     return () => {
@@ -45,12 +38,17 @@ export default function Home() {
     const {
       data: { session }
     } = await supabase.auth.getSession()
+    applySession(session)
+  }
 
+  function applySession(session) {
     const currentUser = session?.user || null
     setUser(currentUser)
 
     if (currentUser) {
       fetchBookmarks(currentUser.id)
+    } else {
+      setBookmarkPostIds(new Set())
     }
   }
 
@@ -106,6 +104,10 @@ export default function Home() {
   async function handleEmailSignIn() {
     if (!authEmail) {
       setAuthMessage('メールアドレスを入力してください。')
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail)) {
+      setAuthMessage('正しいメールアドレス形式で入力してください。')
       return
     }
 
@@ -185,7 +187,11 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error toggling bookmark:', error)
-      setAuthMessage('お気に入りの保存に失敗しました。')
+      setAuthMessage(
+        isBookmarked
+          ? 'お気に入りの削除に失敗しました。'
+          : 'お気に入りの保存に失敗しました。'
+      )
     } finally {
       setBookmarkLoadingId(null)
     }
@@ -476,6 +482,12 @@ export default function Home() {
                 <button
                   onClick={() => toggleBookmark(post.id)}
                   disabled={bookmarkLoadingId === post.id}
+                  aria-pressed={bookmarkPostIds.has(post.id)}
+                  aria-label={
+                    bookmarkPostIds.has(post.id)
+                      ? 'お気に入りから削除'
+                      : 'お気に入りに保存'
+                  }
                   style={{
                     backgroundColor: bookmarkPostIds.has(post.id) ? '#ffe9a8' : 'white',
                     color: '#8a6d1d',
