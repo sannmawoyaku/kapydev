@@ -219,6 +219,13 @@ export default function Home() {
     return true
   })
 
+  function getBookmarkButtonText(postId) {
+    if (bookmarkLoadingId === postId) return '保存中...'
+    return bookmarkPostIds.has(postId)
+      ? '★ お気に入り済み'
+      : '☆ お気に入りに保存'
+  }
+
   return (
     <main style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
       <div style={{
@@ -482,11 +489,6 @@ export default function Home() {
                   onClick={() => toggleBookmark(post.id)}
                   disabled={bookmarkLoadingId === post.id}
                   aria-pressed={bookmarkPostIds.has(post.id)}
-                  aria-label={
-                    bookmarkPostIds.has(post.id)
-                      ? 'お気に入りから削除'
-                      : 'お気に入りに保存'
-                  }
                   style={{
                     backgroundColor: bookmarkPostIds.has(post.id) ? '#ffe9a8' : 'white',
                     color: '#8a6d1d',
@@ -497,11 +499,7 @@ export default function Home() {
                     fontSize: '13px'
                   }}
                 >
-                  {bookmarkLoadingId === post.id
-                    ? '保存中...'
-                    : bookmarkPostIds.has(post.id)
-                      ? '★ お気に入り済み'
-                      : '☆ お気に入りに保存'}
+                  {getBookmarkButtonText(post.id)}
                 </button>
               </div>
             </div>
