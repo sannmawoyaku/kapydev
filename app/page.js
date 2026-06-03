@@ -87,107 +87,107 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
+  }
 
-    async function fetchBookmarks(userId) {
-      const { data, error } = await supabase
-        .from('bookmarks')
-        .select('post_id')
-        .eq('user_id', userId)
+  async function fetchBookmarks(userId) {
+    const { data, error } = await supabase
+      .from('bookmarks')
+      .select('post_id')
+      .eq('user_id', userId)
 
-      if (error) {
-        console.error('Error fetching bookmarks:', error)
-        return
-      }
-
-      setBookmarkPostIds(new Set((data || []).map((item) => item.post_id)))
+    if (error) {
+      console.error('Error fetching bookmarks:', error)
+      return
     }
 
-    async function handleEmailSignIn() {
-      if (!authEmail) {
-        setAuthMessage('メールアドレスを入力してください。')
-        return
-      }
+    setBookmarkPostIds(new Set((data || []).map((item) => item.post_id)))
+  }
 
-      setAuthMessage('')
-      const { error } = await supabase.auth.signInWithOtp({
-        email: authEmail,
-        options: {
-          emailRedirectTo: window.location.origin
-        }
-      })
-
-      if (error) {
-        setAuthMessage('ログインメールの送信に失敗しました。')
-        return
-      }
-
-      setAuthMessage('ログインメールを送信しました。メールをご確認ください。')
+  async function handleEmailSignIn() {
+    if (!authEmail) {
+      setAuthMessage('メールアドレスを入力してください。')
+      return
     }
 
-    async function handleGoogleSignIn() {
-      setAuthMessage('')
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin
-        }
-      })
-
-      if (error) {
-        setAuthMessage('Googleログインに失敗しました。')
+    setAuthMessage('')
+    const { error } = await supabase.auth.signInWithOtp({
+      email: authEmail,
+      options: {
+        emailRedirectTo: window.location.origin
       }
+    })
+
+    if (error) {
+      setAuthMessage('ログインメールの送信に失敗しました。')
+      return
     }
 
-    async function handleSignOut() {
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        setAuthMessage('ログアウトに失敗しました。')
-        return
+    setAuthMessage('ログインメールを送信しました。メールをご確認ください。')
+  }
+
+  async function handleGoogleSignIn() {
+    setAuthMessage('')
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin
       }
-      setUser(null)
-      setBookmarkPostIds(new Set())
-      setAuthMessage('')
+    })
+
+    if (error) {
+      setAuthMessage('Googleログインに失敗しました。')
+    }
+  }
+
+  async function handleSignOut() {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      setAuthMessage('ログアウトに失敗しました。')
+      return
+    }
+    setUser(null)
+    setBookmarkPostIds(new Set())
+    setAuthMessage('')
+  }
+
+  async function toggleBookmark(postId) {
+    if (!user) {
+      setAuthMessage('お気に入りを使うにはログインしてください。')
+      return
     }
 
-    async function toggleBookmark(postId) {
-      if (!user) {
-        setAuthMessage('お気に入りを使うにはログインしてください。')
-        return
-      }
+    setBookmarkLoadingId(postId)
+    const isBookmarked = bookmarkPostIds.has(postId)
 
-      setBookmarkLoadingId(postId)
-      const isBookmarked = bookmarkPostIds.has(postId)
-
-      try {
-        if (isBookmarked) {
-          const { error } = await supabase
-            .from('bookmarks')
-            .delete()
-            .eq('user_id', user.id)
-            .eq('post_id', postId)
-          if (error) throw error
-          setBookmarkPostIds((prev) => {
-            const next = new Set(prev)
-            next.delete(postId)
-            return next
-          })
-        } else {
-          const { error } = await supabase
-            .from('bookmarks')
-            .insert([{ user_id: user.id, post_id: postId }])
-          if (error) throw error
-          setBookmarkPostIds((prev) => {
-            const next = new Set(prev)
-            next.add(postId)
-            return next
-          })
-        }
-      } catch (error) {
-        console.error('Error toggling bookmark:', error)
-        setAuthMessage('お気に入りの保存に失敗しました。')
-      } finally {
-        setBookmarkLoadingId(null)
+    try {
+      if (isBookmarked) {
+        const { error } = await supabase
+          .from('bookmarks')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('post_id', postId)
+        if (error) throw error
+        setBookmarkPostIds((prev) => {
+          const next = new Set(prev)
+          next.delete(postId)
+          return next
+        })
+      } else {
+        const { error } = await supabase
+          .from('bookmarks')
+          .insert([{ user_id: user.id, post_id: postId }])
+        if (error) throw error
+        setBookmarkPostIds((prev) => {
+          const next = new Set(prev)
+          next.add(postId)
+          return next
+        })
       }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error)
+      setAuthMessage('お気に入りの保存に失敗しました。')
+    } finally {
+      setBookmarkLoadingId(null)
     }
   }
 
