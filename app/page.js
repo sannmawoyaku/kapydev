@@ -106,10 +106,6 @@ export default function Home() {
       setAuthMessage('メールアドレスを入力してください。')
       return
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail)) {
-      setAuthMessage('正しいメールアドレス形式で入力してください。')
-      return
-    }
 
     setAuthMessage('')
     const { error } = await supabase.auth.signInWithOtp({
@@ -186,7 +182,10 @@ export default function Home() {
         })
       }
     } catch (error) {
-      console.error('Error toggling bookmark:', error)
+      console.error(
+        `Error ${isBookmarked ? 'removing' : 'adding'} bookmark:`,
+        error
+      )
       setAuthMessage(
         isBookmarked
           ? 'お気に入りの削除に失敗しました。'

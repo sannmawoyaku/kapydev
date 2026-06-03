@@ -94,6 +94,20 @@ create table if not exists bookmarks (
   created_at timestamptz not null default now(),
   unique (user_id, post_id)
 );
+
+alter table bookmarks enable row level security;
+
+create policy "Users can view their own bookmarks"
+  on bookmarks for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert their own bookmarks"
+  on bookmarks for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can delete their own bookmarks"
+  on bookmarks for delete
+  using (auth.uid() = user_id);
 ```
 
 ### Run locally
@@ -121,4 +135,4 @@ npm start
 | Framework | [Next.js 14](https://nextjs.org/) (App Router) |
 | UI | React 18, inline styles |
 | Backend / DB | [Supabase](https://supabase.com) (PostgreSQL + auto-generated REST API) |
-| Auth | Client-side password check (admin panel only) |
+| Auth | Supabase Auth (Email/Google for bookmarks) + client-side password gate for admin |
